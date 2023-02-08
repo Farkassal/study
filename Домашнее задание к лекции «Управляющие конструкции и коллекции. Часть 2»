@@ -1,0 +1,65 @@
+Задание 1
+
+geo_tag = {'user1': [213, 213, 213, 15, 213], 
+       'user2': [54, 54, 119, 119, 119], 
+       'user3': [213, 98, 98, 35]}
+
+for geo in geo_tag.values():
+    new_set = new_set.union(set(geo))
+    
+print(new_set
+
+
+Задание 2 
+
+queries = [
+    'смотреть сериалы онлайн',
+    'новости спорта',
+    'афиша кино',
+    'курс доллара',
+    'сериалы этим летом',
+    'курс по питону',
+    'сериалы про спорт',
+]
+
+sp = []
+
+for item in queries:
+    sp.append(len(item.split())) 
+
+i = 1
+
+while i <= max(sp):
+    if sp.count(i) >0:
+        print('Поисковых запросов, содержащих', i ,'слов(а/о):', round(sp.count(i)*100/len(sp),2))
+    i += 1
+
+
+Задание 3
+
+results = {
+    'vk': {'revenue': 103, 'cost': 98},
+    'yandex': {'revenue': 179, 'cost': 153},
+    'facebook': {'revenue': 103, 'cost': 110},
+    'adwords': {'revenue': 35, 'cost': 34},
+    'twitter': {'revenue': 11, 'cost': 24},
+}
+
+roi = {}
+
+for row,values in results.items():
+    roi.update({row:{'ROI':round((values['revenue'] / values['cost'] - 1) * 100, 2), 'cost':values['cost'], 'revenue':values['revenue']}})
+
+print(roi)
+
+
+
+Задание 4
+
+stats = {'facebook': 55, 'yandex': 115, 'vk': 120, 'google': 99, 'email': 42, 'ok': 98}
+
+for channel, amount in stats.items():
+     if amount == max(list(stats.values())):
+         print('Максимальный объем продаж на рекламном канале:',channel)
+        
+max(stats, key=stats.get) 
