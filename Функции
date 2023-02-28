@@ -1,0 +1,105 @@
+
+documents = [
+    {'type': 'passport', 'number': '2207 876234', 'name': 'Василий Гупкин'},
+    {'type': 'invoice', 'number': '11-2', 'name': 'Геннадий Покемонов'},
+    {'type': 'insurance', 'number': '10006', 'name': 'Аристарх Павлов'}
+]
+
+directories = {
+    '1': ['2207 876234', '11-2'],
+    '2': ['10006'],
+    '3': []
+}
+
+
+
+
+# # Задача 1
+
+def p(num):
+    Flag = False
+    for dic in documents:
+        if "number" in dic.keys() and dic["number"] == num:
+            print("Владелец документа:", dic["name"])
+            Flag = True
+           
+    if not Flag:
+        print("Документ не найден в базе")
+         
+# # Задача 2  
+        
+def s(num):
+    Flag = False
+    for key, value in directories.items():
+        if num in value:
+            print("Документ хранится на полке:", key)
+            Flag = True
+    if not Flag:
+        print ("Документ не найден в базе")
+        
+
+# # Задача 3
+
+def get_key(d, value):
+    for k, v in d.items():
+        if value in v:
+            return k
+
+def l():
+    for c in documents:
+        d_type = c['type']
+        d_num = c['number']
+        d_name = c['name']
+        # print (d_type, d_num, d_name)
+        print("№: ", d_num, ", тип: ", d_type, ", владелец: ", d_name, ", полка хранения: ", get_key(directories, d_num), sep="" )
+        
+
+  
+# # Задача 4
+
+
+def ads(num):
+    for direct in directories.items():
+        if num in direct[0]:
+            print ('Такая полка уже существует. Текущий перечень полок: ' + ', '.join(directories.keys()))
+            break
+    else:
+        directories[num] = []
+        print('Полка добавлена. Текущий перечень полок: ' + ', '.join(directories.keys()))
+
+      
+# # Задача 5
+
+def ds(num):
+    if num in directories:
+        if len(directories[num]) > 0:
+            print('На полке есть документы, удалите их перед удалением полки. Текущий перечень полок: ' + ', '.join(directories.keys()))
+        else: 
+            del directories[num]
+            print('Полка удалена. Текущий перечень полок: ' + ', '.join(directories.keys()))
+    else:
+        print('Такой полки не существует. Текущий перечень полок: ' + ', '.join(directories.keys()))
+
+# Вызов основной функции
+
+def main(documents, directories):
+    while True:
+       user_input = input('Введите команду: ')
+       if user_input == 'p':
+           num = input("Введите номер документа: ")
+           p(num)
+       elif user_input == 's':
+           num = input("Введите номер документа: ")
+           s(num)
+       elif user_input == 'l':
+           l()
+       elif  user_input == 'ads':
+           num = input("Введите номер полки: ")
+           ads(num)
+       elif user_input == 'ds':
+           num = input("Введите номер полки: ")
+           ds(num)
+       elif user_input == 'q':
+           break
+
+main(documents, directories)
