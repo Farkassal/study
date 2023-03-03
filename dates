@@ -1,0 +1,54 @@
+
+from datetime import datetime
+from datetime import timedelta
+
+# Задание 1
+# # The Moscow Times — Wednesday, October 2, 2002
+# tmt = datetime.strptime('Wednesday, October 2, 2002', '%A, %B %d, %Y')
+# print(str(tmt.strftime('%Y-%m-%d %X')))
+
+# # The Guardian — Friday, 11.10.13
+# tg = datetime.strptime('Friday, 11.10.13', '%A, %d.%m.%y')
+# print(str(tg.strftime('%Y-%m-%d %X')))
+
+# # Daily News — Thursday, 18 August 1977
+
+# dn = datetime.strptime('Thursday, 18 August 1977', '%A, %d %B %Y')
+# print(str(dn.strftime('%Y-%m-%d %X')))
+
+# Задание 2
+
+stream = ['2018-04-02', '2018-02-29', '2018-19-02']
+
+# for date in stream:
+#     try:
+#       valid_date = time.strptime(date, '%Y-%m-%d')
+#       print(date, "-", "Valid date")
+#     except ValueError:
+#       print(date, "-", 'Invalid date!')
+
+# Задача 3
+
+# start_date = input('Введите начальную дату в формате YYYY-MM-DD: ')
+
+def date_range(start_date,end_date):
+    try:
+        valid_sd = datetime.strptime(start_date, '%Y-%m-%d')
+        valid_ed = datetime.strptime(end_date, '%Y-%m-%d')
+        if valid_sd < valid_ed:
+            current_dt = valid_sd
+            while current_dt <= valid_ed:
+                print(current_dt.strftime('%Y-%m-%d'))
+                
+                current_dt += timedelta(days=1)
+        else:
+            print("Начальная дата после конечной")
+            empty_list = []
+            print(empty_list)
+                
+    except ValueError:
+        print('Вы ввели данные в неверном формате.')
+        empty_list = []
+        print(empty_list)
+
+date_range(input('Введите начальную дату в формате YYYY-MM-DD: '), input('Введите конечную дату в формате YYYY-MM-DD: '))
