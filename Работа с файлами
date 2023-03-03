@@ -2,31 +2,25 @@ import json
 
 # Задача 1
 
-new_dict = {}
+final_dict = {}
 
-with open("/Users/farkassal/Downloads/python_files/purchase_log.txt", "r") as file:
-    
-    for line in file:
-        line = line.strip()
-        
-        dict_ = json.loads(line)
-        
-        key=dict_['user_id']
-        value=dict_['category']
-        if key!='user_id':
-            new_dict.setdefault(key,value)
-            
+with open("C:/Users/Farkassal/Documents/Python Scripts/ДЗ/purchase_log.txt", "r") as file:
+
+    for i, line in enumerate(file):
+       
+        dict_ = json.loads(line) 
+        key = dict_['user_id']
+        value = dict_['category']
+        final_dict[key] = value
+
 # Задача 2
 
-with open('/Users/farkassal/Downloads/python_files/visit_log.csv', 'r') as f, open('/Users/farkassal/Downloads/python_files/funnel.csv', 'w') as w_f:
-    for row in f:
-        line_list=row.strip().split(',')
-        if line_list[0] in new_dict.keys():
-            line_list.append(new_dict[line_list[0]])
-            add_line=','.join(line_list)
-        elif line_list[0]=='user_id':
-            line_list.append('category')
-            add_line=','.join(line_list)
-        else:
-            add_line=','.join(line_list)
-        w_f.write(add_line+'\n')
+with open('C:/Users/Farkassal/Documents/Python Scripts/ДЗ/visit_log.csv', 'r') as f, open('C:/Users/Farkassal/Documents/Python Scripts/ДЗ/funnel.csv', 'w') as f_2:
+      
+    for i, line in enumerate(f):
+        line = line.strip().split(',')
+        if line[0] in final_dict.keys():
+          line.append(final_dict[line[0]])
+          ad_line = ','.join(line)
+
+          f_2.write(ad_line + '\n')
