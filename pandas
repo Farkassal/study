@@ -1,0 +1,28 @@
+import pandas as pd
+
+# Задание 1
+
+data = pd.read_csv('C:/Users/Farkassal/Documents/Python Scripts/ДЗ/pandas/ml-latest-small/ratings.csv')
+movies = pd.read_csv('C:/Users/Farkassal/Documents/Python Scripts/ДЗ/pandas/ml-latest-small/movies.csv')
+
+
+top_group = data.query('rating == 5.0').groupby('movieId').count().sort_values(by='rating', ascending=False)
+
+name = movies.query('movieId == 318')
+
+print ('Фильм, набравший больше всего 5.0 - ', name['title'])
+
+# Задание 2
+
+power_data = pd.read_csv('C:/Users/Farkassal/Documents/Python Scripts/ДЗ/power.csv')
+
+sub_data = power_data.query('country in ("Latvia", "Lithuania", "Estonia") '
+                            '& category in (4, 12, 21) & 2005 <= year <= 2010 & quantity >= 0')
+
+print(f"Task 4. Total power consumption: {sub_data['quantity'].sum()}")
+
+# Задание 3
+
+table_ = pd.read_html('https://pythonworld.ru/tipy-dannyx-v-python/stroki-funkcii-i-metody-strok.html')
+
+print(table_[0])
