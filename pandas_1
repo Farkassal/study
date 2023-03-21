@@ -1,0 +1,84 @@
+import pandas as pd
+
+# Задание 1
+
+def classify_films (ratings_path, movies_path):
+    # Чтение рейтингов и файлов фильмов csv
+    ratings_df = pd.read_csv(ratings_path)
+    movie_df = pd.read_csv(movies_path)
+    
+    # Рассчитать средний рейтинг для каждого фильма
+    avg_ratings = ratings_df.groupby('movieId')['rating'].mean()
+    # Классифицировать фильмы на основе их среднего рейтинга
+    def classify (avg_ratings):
+        if avg_ratings <= 2:
+            return "низкий рейтинг"
+        elif avg_ratings <= 4:
+            return "средний рейтинг"
+        elif 4.5 <= avg_ratings <= 5:
+            return "высокий рейтинг"
+        else:
+            return "Попал в промежуток 4 - 4.5"
+    movie_df['класс'] = avg_ratings.apply(classify)
+
+    # Сохраняем результат в файл movie.csv
+    movie_df.to_csv(movies_path, index=False)
+
+
+ratings_path = '/Users/farkassal/Documents/python_hw/hw1/ratings.csv'
+movies_path = '/Users/farkassal/Documents/python_hw/hw1/movies.csv'
+
+classify_films (ratings_path, movies_path)
+
+# Задание 2
+
+# Чтение CSV-файла
+df = pd.read_csv('/Users/farkassal/Documents/python_hw/hw1/keywords.csv')
+
+# Создать словарь регионов и городов
+geo_data = {
+    
+'Center': ['moscow', 'tula', 'yaroslavl'],
+
+'North-West': ['petersburg', 'pskov', 'murmansk'],
+
+'Far East': ['Vladivostok', 'Sakhalin', 'Khabarovsk']
+}
+
+def classify_region (df):
+    search_query = df['keyword'].lower()
+    for region, city in geo_data.items():
+        for city in city:
+            if city.lower() in search_query:
+                return region
+    return "неопределенное"
+
+# Применяем функцию к каждой строке и сохраняем результаты в новом столбце
+df['region'] = df.apply(classify_region, axis=1)
+
+df.to_csv('/Users/farkassal/Documents/python_hw/hw1/keyword_with_region.csv', index=False)
+
+# Задание 3
+
+# Создадим список years с помощью функции range() и преобразуем его в список:
+
+years = list(range(1950, 2011))
+
+# Напишем функцию production_year, которая будет принимать строку с названием фильма и возвращать год выпуска, используя список years:
+
+def production_year(title):
+    for year in years:
+        if str(year) in title:
+            return year
+    return 1900
+
+# Прочитаем файл ratings.csv и добавим в него новый столбец 'year', используя функцию production_year:
+
+ratings = pd.read_csv(ratings_path)
+movies = pd.read_csv(movies_path)
+
+ratings['year'] = movies['title'].apply(production_year)
+
+# Посчитаем средний рейтинг для каждого года и отсортируем результат по убыванию рейтинга:
+
+print(ratings.groupby('year')['rating'].mean().sort_values(ascending=False))
