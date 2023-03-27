@@ -1,0 +1,77 @@
+import requests
+import pandas as pd
+
+url = 'https://raw.githubusercontent.com/obulygin/pyda_homeworks/master/statistics_basics/horse_data.csv'
+
+response = requests.get(url).content.decode('utf-8')
+
+# Задание 1
+
+df = pd.read_csv(url, names=['surgery?', 'Age', 'Hospital Number', 'rectal temperature', 'pulse', 'respiratory rate', 'temperature of extremities', 'peripheral pulse', 'mucous membranes', 'capillary refill time', 'pain', 'peristalsis', 'abdominal distension', 'nasogastric tube', 'nasogastric reflux', 'nasogastric reflux PH', 'rectal examination', 'abdomen', 'packed cell volume', 'total protein', 'abdominocentesis appearance', 'abdomcentesis total protein', 'outcome', 'surgical lesion?', 'type of lesion1', 'type of lesion2', 'type of lesion3', 'cp_data'], header=None)
+df = df[['surgery?', 'Age', 'rectal temperature', 'pulse', 'respiratory rate', 'temperature of extremities', 'pain', 'outcome']]
+
+
+# Задание 2
+
+df = df.replace('?', float("NaN"))
+
+df['rectal temperature'] = df['rectal temperature'].astype(float)
+df['pulse'] = df['pulse'].astype(float)
+df['respiratory rate'] = df['respiratory rate'].astype(float)
+
+
+
+#расчеты для столбца rectal temperature
+q1_temp = df['rectal temperature'].quantile(0.25)
+q3_temp = df['rectal temperature'].quantile(0.75)
+iqr_temp = q3_temp - q1_temp
+lower_bound_temp = q1_temp - 1.5 * iqr_temp
+upper_bound_temp = q3_temp + 1.5 * iqr_temp
+outliers_temp = df[(df['rectal temperature'] < lower_bound_temp) | (df['rectal temperature'] > upper_bound_temp)]
+
+
+#расчеты для столбца pulse
+q1_pulse = df['pulse'].quantile(0.25)
+q3_pulse = df['pulse'].quantile(0.75)
+iqr_pulse = q3_pulse - q1_pulse
+lower_bound_pulse = q1_pulse - 1.5 * iqr_pulse
+upper_bound_pulse = q3_pulse + 1.5 * iqr_pulse
+outliers_pulse = df[(df['pulse'] < lower_bound_pulse) | (df['pulse'] > upper_bound_pulse)]
+
+#расчеты для столбца respiratory rate
+q1_resp = df['respiratory rate'].quantile(0.25)
+q3_resp = df['respiratory rate'].quantile(0.75)
+iqr_resp = q3_resp - q1_resp
+lower_bound_resp = q1_resp - 1.5 * iqr_resp
+upper_bound_resp = q3_resp + 1.5 * iqr_resp
+outliers_resp = df[(df['respiratory rate'] < lower_bound_resp) | (df['respiratory rate'] > upper_bound_resp)]
+
+
+print("Выбросы в столбце 'rectal temperature': ")
+print(outliers_temp)
+
+print("\nВыбросы в столбце 'pulse': ")
+print(outliers_pulse)
+
+print("\nВыбросы в столбце 'respiratory rate': ")
+print(outliers_resp)
+
+# Задание 3
+
+# print(df.isna().sum())
+
+# Заполняем пропуски в столбцах rectal temperature, pulse и respiratory rate медианой, тк они содержат достаточное кол-во выбросов и среднее значение может быть искажено
+df['rectal temperature'].fillna(df['rectal temperature'].median(), inplace=True)
+df['pulse'].fillna(df['pulse'].median(), inplace=True)
+df['respiratory rate'].fillna(df['respiratory rate'].median(), inplace=True)
+
+# Заполняем пропуски в столбцах temperature of extremities и pain модой, как наиболее частовстречающееся значение
+df['temperature of extremities'].fillna(df['temperature of extremities'].mode()[0], inplace=True)
+df['pain'].fillna(df['pain'].mode()[0], inplace=True)
+df['surgery?'].fillna(df['surgery?'].mode()[0], inplace=True)
+df['outcome'].fillna(df['outcome'].mode()[0], inplace=True)
+
+# Создаем датафрейм без пропусков
+df_clean = df.dropna()
+
+print(df.isna().sum())
