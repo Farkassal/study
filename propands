@@ -1,0 +1,77 @@
+# Задание 1
+
+import pandas as pd
+from datetime import datetime
+
+visit_log = pd.read_csv('C:/Users/Farkassal/Documents/Python Scripts/ДЗ/pandas/доп_материалы_к_пандас_1_и_2/visit_log.csv', sep=';')
+
+
+visit_log['source_type'] = visit_log['traffic_source']
+
+visit_log.loc[visit_log['traffic_source'].isin(['yandex', 'google']), 'source_type'] = 'organic'
+
+visit_log.loc[visit_log['traffic_source'].isin(['paid', 'email']) & (visit_log['region'] == 'Russia'), 'source_type'] = 'ad'
+
+visit_log.loc[visit_log['traffic_source'].isin(['paid', 'email']) & ~(visit_log['region'] == 'Russia'), 'source_type'] = 'other'
+
+# Задание 2
+
+
+urls = pd.read_csv('C:/Users/Farkassal/Documents/Python Scripts/ДЗ/pandas/доп_материалы_к_пандас_1_и_2/URLs.txt')
+
+news_urls = urls[urls['url'].str.contains(r'/\d{8}-')]
+
+# Задание 3
+
+ratings = pd.read_csv('C:/Users/Farkassal/Documents/Python Scripts/ДЗ/pandas/доп_материалы_к_пандас_1_и_2/ml-latest-small/ratings.csv')
+
+ratings_count = ratings.groupby('userId').count()['rating'].reset_index()
+
+ratings_count = ratings_count[ratings_count['rating'] > 100]
+
+min_timestamp = ratings.groupby('userId').min()['timestamp'].reset_index()
+
+max_timestamp = ratings.groupby('userId').max()['timestamp'].reset_index()
+
+lifetime = min_timestamp.merge(max_timestamp, on='userId', how='inner')
+
+lifetime['lifetime'] = lifetime['timestamp_y'] - lifetime['timestamp_x']
+
+
+mean_lifetime = lifetime.merge(ratings_count, on='userId', how='inner')['lifetime'].mean()
+
+# Задание 4
+
+rzd = pd.DataFrame(
+    {
+        'client_id': [111, 112, 113, 114, 115],
+        'rzd_revenue': [1093, 2810, 10283, 5774, 981]
+    }
+)
+
+auto = pd.DataFrame(
+    {
+        'client_id': [113, 114, 115, 116, 117],
+        'auto_revenue': [57483, 83, 912, 4834, 98]
+    }
+)
+
+air = pd.DataFrame(
+    {
+        'client_id': [115, 116, 117, 118],
+        'air_revenue': [81, 4, 13, 173]
+    }
+)
+
+client_base = pd.DataFrame(
+    {
+        'client_id': [111, 112, 113, 114, 115, 116, 117, 118],
+        'address': ['Комсомольская 4', 'Энтузиастов 8а', 'Левобережная 1а', 'Мира 14', 'ЗЖБИиДК 1', 
+                    'Строителей 18', 'Панфиловская 33', 'Мастеркова 4']
+    }
+)
+
+result = rzd.merge(auto, how='outer').merge(air, how='outer').fillna(0)
+result = result[['client_id', 'rzd_revenue', 'auto_revenue', 'air_revenue']]
+result_with_address = result.merge(client_base, how='left')
+result_with_address = result_with_address[['client_id', 'address', 'rzd_revenue', 'auto_revenue', 'air_revenue']]
