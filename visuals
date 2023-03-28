@@ -1,0 +1,80 @@
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import json
+from datetime import datetime
+import seaborn as sns
+
+df = pd.read_csv('C:/Users/Farkassal/Documents/Python Scripts/ДЗ/Визуализация/USvideos.csv')
+
+with open('C:/Users/Farkassal/Documents/Python Scripts/ДЗ/Визуализация/US_category_id.json', 'r') as f:
+    data=json.load(f)
+
+categories = []
+for item in data['items']:
+    categories.append({
+        'category_id': int(item['id']),
+        'category_name': item['snippet']['title']
+    })
+
+df_json = pd.DataFrame(categories)
+
+df = pd.merge(df, df_json, on='category_id')
+
+print(df.info())
+
+df_grouped = df.groupby('category_name')['views'].sum()
+
+# Получение топ-10 категорий
+df_top_10 = df_grouped.nlargest(10)
+
+# Построение графика
+plt.barh(df_top_10.index, df_top_10.values)
+plt.title('Топ-10 категорий Youtube по просмотрам')
+plt.xlabel('Кол-во просмотров')
+plt.ylabel('Категория')
+plt.show()
+
+# Вывод - самая популярная категория - Музыка и развлечения
+
+df['publish_time'] = pd.to_datetime(df['publish_time'], format='%Y-%m-%dT%H:%M:%S.%fZ')
+
+df['year'] = df['publish_time'].dt.strftime('%Y')
+
+df_year = df.groupby('year')['views'].sum().reset_index()
+
+plt.plot(df_year['year'], df_year['views'])
+plt.xticks(rotation=45)
+plt.xlabel('Год')
+plt.ylabel('Кол-во просмотров')
+plt.title('Количество просмотров по годам')
+plt.show()
+
+# Вывод - с 2016 года наблюдался бурный рост кол-ва просмотров (исходя из данных)
+
+
+plt.scatter(df['views'], df['likes'])
+
+
+plt.title("Зависимость лайков от просмотров")
+plt.xlabel("Просмотры")
+plt.ylabel("Лайки")
+
+plt.show()
+
+## Вывод чем больше просмотров, тем больше лайков, всегда верно, если только ты не выложил клип Москва от Тимати, хотя мне он зашел :)
+
+df['month'] = df['publish_time'].dt.month
+df['day'] = df['publish_time'].dt.day
+pivot_table = pd.pivot_table(df, values='video_id', index='month', columns='year', aggfunc='count')
+
+
+sns.heatmap(pivot_table, cmap="YlGnBu")
+
+plt.xlabel('Год')
+plt.ylabel('Месяц')
+plt.title('Распределение количества выпущенных видео')
+
+plt.show()
+
+# Вывод - самый активный был май 2018 года
