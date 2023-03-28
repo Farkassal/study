@@ -1,0 +1,150 @@
+import pandas as pd
+from scipy import stats
+
+url = 'https://raw.githubusercontent.com/obulygin/pyda_homeworks/master/stat_case_study/vgsales.csv'
+
+data = pd.read_csv(url)
+
+# print(data.info())
+# print(data.describe())
+
+    # Задание 1
+
+    # 1. Как критики относятся к спортивным играм?
+
+# нулевая гипотеза: средний рейтинг критиков для спортивных игр не отличается от среднего рейтинга критиков для игр других жанров.
+# альтернативная гипотеза: средний рейтинг критиков для спортивных игр отличается от среднего рейтинга критиков для игр других жанров.
+# пороговый уровень статистической значимости: 0.05.
+
+sports_critic_score = data[data['Genre'] == 'Sports']['Critic_Score'].dropna()
+other_critic_score = data[data['Genre'] != 'Sports']['Critic_Score'].dropna()
+
+t, p = stats.ttest_ind(sports_critic_score, other_critic_score, equal_var=True)
+
+if p < 0.05:
+    print('Критики относятся к спортивным играм не так, как к играм других жанров')
+else:
+    print('Критики относятся к спортивным играм так же, как к играм других жанров')
+    
+#     2. Критикам нравятся больше игры на PC или на PS4?
+# Нулевая гипотеза: средние оценки игр для PC и PS4 равны.
+# Альтернативная гипотеза: средние оценки игр для PC и PS4 отличаются.
+# пороговый уровень статистической значимости: 0.05.
+
+pc_critic_score = data[data['Platform'] == 'PC']['Critic_Score'].dropna()
+ps4_critic_score = data[data['Platform'] == 'PS4']['Critic_Score'].dropna()
+
+alpha = 0.05
+
+t, p = stats.ttest_ind(pc_critic_score, ps4_critic_score, equal_var=True)
+
+if p < alpha:
+    if pc_critic_score.mean() > ps4_critic_score.mean():
+        print('Средние оценки игр для PC выше, чем для PS4. Критикам больше нравится PC')
+    else:
+        print('Средние оценки игр для PS4 выше, чем для PC. Критикам больше нравится PS4')
+else:
+    print('Средние оценки игр для PC и PS4 равны. Критикам все нравится одинаково')
+
+#     Критикам больше нравятся стрелялки или стратегии?
+# Нулевая гипотеза: средние оценки игр в жанре "Shooter" и в жанре "Strategy" равны.
+# Альтернативная гипотеза: средние оценки игр в жанре "Shooter" и в жанре "Strategy" отличаются.
+# Пороговый уровень статистической значимости: 0.05.
+
+shooter_critic_score = data[data['Genre'] == 'Shooter']['Critic_Score'].dropna()
+strategy_critic_score = data[data['Genre'] == 'Strategy']['Critic_Score'].dropna()
+
+alpha = 0.05
+t, p = stats.ttest_ind(shooter_critic_score, strategy_critic_score, equal_var=True)
+
+if p < alpha:
+    if shooter_critic_score.mean() > strategy_critic_score.mean():
+        print('Средние оценки игр в жанре "Shooter" выше, чем в жанре "Strategy". Критикам больше нравится стрелялки)')
+    else:
+        print('Средние оценки игр в жанре "Strategy" выше, чем в жанре "Shooter". Критикам больше нравится стратегии')
+else:
+    print('Средние оценки игр в жанре "Shooter" и "Strategy" равны. Критикам все равно')
+
+    # Задание 2
+
+import re
+import nltk
+import numpy as np
+from nltk.corpus import stopwords
+from nltk.stem import WordNetLemmatizer
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, confusion_matrix
+
+url2 = 'https://raw.githubusercontent.com/obulygin/pyda_homeworks/master/stat_case_study/spam.csv'
+data = pd.read_csv(url2)
+
+# приведение текста к нижнему регистру
+data['Message'] = data['Message'].str.lower()
+
+# удаление мусорных символов
+def remove_punctuation(text):
+    return re.sub('[^\w\s]', '', text)
+
+data['Message'] = data['Message'].apply(remove_punctuation)
+
+# удаление стоп-слов
+stop_words = set(stopwords.words('english'))
+def remove_stopwords(text):
+    words = nltk.word_tokenize(text)
+    filtered_words = []
+    for word in words:
+        if word not in stop_words:
+            filtered_words.append(word)
+    return ' '.join(filtered_words)
+
+data['Message'] = data['Message'].apply(remove_stopwords)
+
+# приведение слов к нормальной форме
+
+lemmatizer = WordNetLemmatizer()
+def lemmatize(text):
+    words = nltk.word_tokenize(text)
+    lemmatized_words = []
+    for word in words:
+        lemmatized_word = lemmatizer.lemmatize(word)
+        lemmatized_words.append(lemmatized_word)
+    return ' '.join(lemmatized_words)
+
+data['Message'] = data['Message'].apply(lemmatize)
+
+
+tfidf = TfidfVectorizer()
+tfidf_matrix = tfidf.fit_transform(data['Message'])
+names = tfidf.get_feature_names_out()
+tfidf_matrix = pd.DataFrame(tfidf_matrix.toarray(), columns=names)
+
+
+# разделение данных на тестовые и тренировочные
+X_train, X_test, y_train, y_test = train_test_split(tfidf_matrix, data['Category'], test_size=0.3, random_state=42)
+
+# создание объекта LogisticRegression
+lr = LogisticRegression(random_state=42)
+
+# обучение модели на тренировочных данных
+lr.fit(X_train, y_train)
+
+# предсказание классов на тестовых данных
+y_pred = lr.predict(X_test)
+
+# оценка точности модели на тестовых данных
+accuracy = accuracy_score(y_test, y_pred)
+print("Точность:", accuracy)
+
+# создание матрицы ошибок
+cm = confusion_matrix(y_test, y_pred)
+print("Матрица ошибок:\n", cm)
+
+# создание датафрейма с неправильно классифицированными сообщениями
+incorrect_indices = np.where(y_test != y_pred)[0]
+df_incorrect = data.iloc[incorrect_indices, [0, 1]]
+df_incorrect['Predicted'] = y_pred[incorrect_indices]
+df_incorrect = df_incorrect[df_incorrect['Category'] != df_incorrect['Predicted']][['Message', 'Category', 'Predicted']]
+
+print(df_incorrect)
