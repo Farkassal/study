@@ -1,0 +1,140 @@
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from scipy import stats
+from sklearn.model_selection import train_test_split
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+
+# Задание 1 - Загрузите файл HR.csv в pandas dataframe
+
+df = pd.read_csv('C:/Users/Farkassal/Documents/Python Scripts/HR.csv')
+
+
+print("Задание 2 - Рассчитайте основные статистики для переменных (среднее,медиана,мода,мин/макс,сред.отклонение)\n")
+print(df.describe())
+print(df.info())
+
+print("Задание 3 - Рассчитайте и визуализировать корреляционную матрицу для количественных переменных. Определите две самые скоррелированные и две наименеескоррелированные переменные.\n")
+
+# выбор количественных переменных , 'Work_accident', 'left', 'promotion_last_5years' - решил их не учитывать в расчетах, тк на мой взгляд - они качественные
+numerical_vars = ['satisfaction_level', 'last_evaluation', 'number_project', 'average_montly_hours', 'time_spend_company']
+
+# расчет корреляционной матрицы
+corr_matrix = df[numerical_vars].corr()
+
+# визуализация корреляционной матрицы
+sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', square=True)
+plt.show()
+
+# вывод самых скоррелированных и наименее скоррелированных переменных
+print('Самые скоррелированные переменные:')
+print(corr_matrix.unstack().sort_values(ascending=False)[len(numerical_vars)::2][:2])
+print('\nНаименее скоррелированные переменные:')
+print(corr_matrix.unstack().sort_values()[::len(numerical_vars)+1][:2])
+
+
+print("Задание 4 - Рассчитайте сколько сотрудников работает в каждом департаменте\n")
+
+employee_count = df.groupby('department')['satisfaction_level'].count()
+employee_count = employee_count.sort_values(ascending=False)
+employee_count = employee_count.append(pd.Series(employee_count.sum(), index=['Total']))
+
+
+# выводим результат
+print('\n', employee_count)
+
+print("Задание 5 - Показать распределение сотрудников по зарплатам.\n")
+
+salary_count = df.groupby('salary')['satisfaction_level'].count()
+salary_count = salary_count.append(pd.Series(salary_count.sum(), index=['Total']))
+salary_count = salary_count.reindex(['high', 'medium', 'low', 'Total'])
+
+print('\n', salary_count)
+
+print("Задание 6 -Показать распределение сотрудников по зарплатам в каждом департаменте по отдельности\n")
+
+# группируем данные по столбцам 'department' и 'salary' и считаем количество строк в каждой группе
+dept_salary_count = df.groupby(['department', 'salary'])['satisfaction_level'].count()
+
+# создаем таблицу распределения сотрудников по зарплатам для каждого департамента
+dept_salary_table = pd.pivot_table(df, values='satisfaction_level', index='department', columns='salary', aggfunc='count', margins=True, margins_name='Total')
+
+# удаляем строку 'Total' из таблицы
+total_row = dept_salary_table.loc['Total']
+dept_salary_table = dept_salary_table.drop('Total')
+
+# сортируем столбцы таблицы по убыванию по столбцу 'Total'
+dept_salary_table = dept_salary_table.sort_values(by='Total', ascending=False, axis=0)
+
+# добавляем строку 'Total' в конец таблицы
+dept_salary_table = dept_salary_table.append(total_row)
+
+# выводим таблицу на экран
+print('\n',dept_salary_table)
+
+print("Задание 7 Проверить гипотезу, что сотрудники с высоким окладом проводят на работе больше времени, чем сотрудники с низким окладом\n")
+
+# выбираем данные только для сотрудников с низким и высоким окладом
+low_salary = df[df['salary'] == 'low']['average_montly_hours']
+high_salary = df[df['salary'] == 'high']['average_montly_hours']
+
+# выполняем t-тест Стьюдента
+t_stat, p_val = stats.ttest_ind(low_salary, high_salary)
+
+# выводим результаты теста на экран
+print('t-статистика:', t_stat)
+print('p-value:', p_val)
+
+# проверяем, достигает ли p-value уровня значимости 0.05
+if p_val < 0.05:
+    print('Отвергаем нулевую гипотезу. Сотрудники с высоким окладом проводят на работе больше времени, чем сотрудники с низким окладом.')
+else:
+    print('Не отвергаем нулевую гипотезу. Нет достаточных доказательств того, что сотрудники с высоким окладом проводят на работе больше времени, чем сотрудники с низким окладом.')
+
+print("\nЗадание 8 Рассчитать следующие показатели среди уволившихся и неуволившихся сотрудников (по отдельности):\n● Доля сотрудников с повышением за последние 5 лет\n● Средняя степень удовлетворенности\n● Среднее количество проектов\n")
+
+# группируем данные по признаку 'left'
+grouped = df.groupby('left')
+
+# рассчитываем долю сотрудников с повышением за последние 5 лет
+promotion_rate = grouped['promotion_last_5years'].apply(lambda x: (x[x == 1].count()/x.count())*100)
+
+# рассчитываем среднюю степень удовлетворенности
+satisfaction_mean = grouped['satisfaction_level'].mean()
+
+# рассчитываем среднее количество проектов
+projects_mean = grouped['number_project'].mean()
+
+# создаем таблицу из полученных данных
+data = {'Уволился': [promotion_rate[1], satisfaction_mean[1], projects_mean[1]],
+        'Не уволился': [promotion_rate[0], satisfaction_mean[0], projects_mean[0]]}
+table = pd.DataFrame(data=data, index=['Доля сотрудников с повышением за последние 5 лет, %',
+                                        'Средняя степень удовлетворенности',
+                                        'Среднее количество проектов'])
+
+print(table)
+
+print("\nЗадание 9 Разделить данные на тестовую и обучающую выборки Построить модель LDA, предсказывающую уволился ли сотрудник на основе имеющихся факторов (кроме department и salary) Оценить качество модели на тестовой выборки\n")
+
+# удаляем столбцы 'department' и 'salary'
+df = df.drop(['department', 'salary'], axis=1)
+
+# задаем целевую переменную 'left'
+y = df['left']
+
+# задаем признаки
+X = df.drop('left', axis=1)
+
+# разделяем данные на обучающую и тестовую выборки в соотношении 70:30
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# создаем объект модели LDA
+lda = LinearDiscriminantAnalysis()
+
+# обучаем модель на обучающей выборке
+lda.fit(X_train, y_train)
+
+# оцениваем качество модели на тестовой выборке
+score = lda.score(X_test, y_test)
+
+print('Качество модели на тестовой выборке:', score)
